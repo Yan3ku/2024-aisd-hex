@@ -98,8 +98,8 @@ public:
 	bool wins_aux(Color cl, size_t col, size_t row, bool visited[][MAX_ROW]) const {
 		visited[col][row] = true;
 		for (int i = 0; i < SIDES_NUM; i++) {
-			int r = getKinjoRow(row, i);
-			int c = getKinjoCol(col, i);
+			int r = getNeighRow(row, i);
+			int c = getNeighCol(col, i);
 			// until finds the second winning edge
 			if (this->fields[c][r] == winningEdge(cl)) return true;
 			if (visited[c][r] || this->fields[c][r] != cl) continue;
@@ -145,8 +145,7 @@ public:
 		return getFieldsNum() >= getPawnsNum() + needed + executed_other;
 	}
 
-	// cant type neighboordasdfklj
-	static size_t getKinjoRow(size_t row, int side) {
+	static size_t getNeighRow(size_t row, int side) {
 		switch (side) {
 		case 0: return row - 2; break;
 		case 1: return row - 1; break;
@@ -159,7 +158,7 @@ public:
 		return 0;
 	}
 
-	static size_t getKinjoCol(size_t col, int side) {
+	static size_t getNeighCol(size_t col, int side) {
 		switch (side) {
 		case 0: return col - 1; break;
 		case 1: return col - 1; break;
@@ -201,28 +200,23 @@ public:
 	// true means there is
 	bool miniMax(Color target, Color current, int moves) {
 		// the target wins in EXACTLY N moves this is the true case
-		// if it wins but not in N moves this is dead end
+		// if it wins but not in N moves this end recurrsion
 		if (wins(otherPlayer(current))) return target != current && moves == 0;
 		if (moves <= 0 || filled()) return false; // the game ends and target doesnt win
 		if (target == current) moves--;
 		FOR_EACH_POS() {
 			if (fields[c][r] != NONE) continue; // only for empty fields
 			setField(c, r, current);
-			bool res = miniMax(target, otherPlayer(current), moves);
+			bool targetWon = miniMax(target, otherPlayer(current), moves);
 			unsetField(c, r);
 			if (target == current) {
 				// maximazing players chooses possible winning position
-				if (res) return true;
+				if (targetWon) return true;
 			} else {
 				// minimalizing players chooses possible losing position
-				if (!res) return false;
+				if (!targetWon) return false;
 			}
 		} END_FOR_EACH_POS;
-		// target == current -> case where there is no possible winning
-		// FALSE - no winning position
-
-		// target != current -> there is no position to make target lose
-		// TRUE - target wins
 		return target == current ? false : true;
 	}
 
